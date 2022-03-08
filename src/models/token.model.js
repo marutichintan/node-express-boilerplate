@@ -1,44 +1,45 @@
-const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
+'use strict';
 const { tokenTypes } = require('../config/tokens');
 
-const tokenSchema = mongoose.Schema(
-  {
-    token: {
-      type: String,
-      required: true,
-      index: true,
-    },
-    user: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: [tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD, tokenTypes.VERIFY_EMAIL],
-      required: true,
-    },
-    expires: {
-      type: Date,
-      required: true,
-    },
-    blacklisted: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+const bcrypt = require("bcryptjs");
+module.exports = (sequelize, DataTypes) => {
+	const Token = sequelize.define('Token', {
+		id: {
+			allowNull: false,
+			autoIncrement: true,
+			primaryKey: true,
+			type: DataTypes.BIGINT(16)
+		},
+		token: {
+			type: DataTypes.STRING(255),
+			allowNull: false,
+		},
+		user_id: {
+			type: DataTypes.BIGINT(16),
+			allowNull: false,
+		},
+		type: {
+			type: DataTypes.ENUM([tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD, tokenTypes.VERIFY_EMAIL]),
+			allowNull: false,
+		},
+		expires: {
+			type: DataTypes.DATE,
+			allowNull: false,
+		},
+		blacklisted: {
+			type: DataTypes.BOOLEAN(),
+			allowNull: true,
+			defaultValue: null
+		},
+		createdAt: {
+			allowNull: false,
+			type: DataTypes.DATE
+		},
+		updatedAt: {
+			allowNull: false,
+			type: DataTypes.DATE
+		}
+	}, {});
 
-// add plugin that converts mongoose to json
-tokenSchema.plugin(toJSON);
-
-/**
- * @typedef Token
- */
-const Token = mongoose.model('Token', tokenSchema);
-
-module.exports = Token;
+	return Token;
+};

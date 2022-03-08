@@ -8,7 +8,11 @@ const envVarsSchema = Joi.object()
   .keys({
     NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
     PORT: Joi.number().default(3000),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    MYSQL_USER: Joi.string().required().description('MYSQL Username'),
+    // MYSQL_PASS: Joi.string().optional().description('MYSQL Password'),
+    MYSQL_DB: Joi.string().required().description('MYSQL Username'),
+    SQL_LOG: Joi.string().default('yes').description('SQL Logging'),
+    MYSQL_ISO_LEVEL: Joi.string().default("READ_UNCOMMITTED").description('MYSQL Isolation Level'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -35,13 +39,19 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
-  mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+  mysql: {
+    username: envVars.MYSQL_USER,
+    password: envVars.MYSQL_PASS,
+    database: envVars.MYSQL_DB,
+    dialect: "mysql",
+    "logging": (envVars.SQL_LOG === 'yes')?true: false,
+    "isolationLevel": envVars.MYSQL_ISO_LEVEL,
+    pool: {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
   },
   jwt: {
     secret: envVars.JWT_SECRET,
